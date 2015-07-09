@@ -31,7 +31,6 @@
 		that.$path.attr('stroke-width', '2');
 		that.$path.attr('fill', 'transparent');
 		that.$path.attr('fill-opacity', '0.3');
-		that.$path.attr('d', 'M10,10 L100,10 L100,100');
 
 		that.$markersSvg.append(that.$path);
 
@@ -46,18 +45,20 @@
 	function onSvgMouseDown(evt, that){
 		if (evt.which == 1){	// left click
 
+			var eventxy = getEventxy(evt);
+
 			var $newCircle = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
 			$newCircle.attr('r', '5');
-			$newCircle.attr('cx', evt.offsetX);
-			$newCircle.attr('cy', evt.offsetY);
+			$newCircle.attr('cx', eventxy.x);
+			$newCircle.attr('cy', eventxy.y);
 			$newCircle.attr('fill', '#22c');
 			$newCircle.attr('stroke', 'black');
 
 			$newCircle.on('mousedown', function(evt){ onCircleMouseDown(evt, that, this); })
 
 			that.$markersSvg.append($newCircle);
-
 			that.$dragCircle = $newCircle;
+			updatePath(that);
 		}
 	}
 
@@ -67,18 +68,49 @@
 
 	function onSvgMouseMove(evt, that){
 		if (null != that.$dragCircle){
-			that.$dragCircle.attr('cx', evt.offsetX);
-			that.$dragCircle.attr('cy', evt.offsetY);
+
+			var eventxy = getEventxy(evt);
+
+			that.$dragCircle.attr('cx', eventxy.x);
+			that.$dragCircle.attr('cy', eventxy.y);
+			updatePath(that);
 		}
 	}
 
 	function onCircleMouseDown(evt, that, circle){
 		if (evt.which == 1)			// left click
 			that.$dragCircle = $(circle);
-		else if (evt.which == 3)	// right-click to delete
+		else if (evt.which == 3){	// right-click to delete
 			$(circle).remove();
-		
+			updatePath(that);
+		}
+
 		evt.stopPropagation();
+	}
+
+	function updatePath(that){
+
+		var dString = "";
+		var operation = "";
+
+		var circles = $("circle", that.$markersSvg);
+		circles.each(function(index, circle){
+			if (index == 0)
+				operation = "M";
+			else
+				operation = "L";
+
+			dString += operation + $(circle).attr('cx') + "," + $(circle).attr('cy') + " ";
+		});
+
+		that.$path.attr('d', dString);
+	}
+
+	function getEventxy(evt){
+		if (typeof evt.offsetX != 'undefined')
+			return { x: evt.offsetX, y: evt.offsetY };
+		else
+			return { x: evt.originalEvent.layerX, y: evt.originalEvent.layerY };
 	}
 
 	PolygonMarker.prototype = {
