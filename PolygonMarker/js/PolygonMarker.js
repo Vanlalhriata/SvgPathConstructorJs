@@ -9,6 +9,7 @@
 
 		this.$markersSvg = $markersSvg;
 		this.$path = null;
+		this.$dragCircle = null;
 
 		initialise(this);
 	}
@@ -34,12 +35,50 @@
 
 		that.$markersSvg.append(that.$path);
 
-		that.$markersSvg.on('mousedown', onMouseDown);
-		that.$markersSvg.on('contextmenu', function(){ return false; });
+		that.$markersSvg.on('mousedown', function(evt){ onSvgMouseDown(evt, that) });
+		that.$markersSvg.on('mouseup', function(evt){ onSvgMouseUp(evt, that) });
+		that.$markersSvg.on('mousemove', function(evt){ onSvgMouseMove(evt, that) });
 
+		// disable right-click
+		that.$markersSvg.on('contextmenu', function(){ return false; });
 	}
 
-	function onMouseDown(evt){
+	function onSvgMouseDown(evt, that){
+		if (evt.which == 1){	// left click
+
+			var $newCircle = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
+			$newCircle.attr('r', '5');
+			$newCircle.attr('cx', evt.offsetX);
+			$newCircle.attr('cy', evt.offsetY);
+			$newCircle.attr('fill', '#22c');
+			$newCircle.attr('stroke', 'black');
+
+			$newCircle.on('mousedown', function(evt){ onCircleMouseDown(evt, that, this); })
+
+			that.$markersSvg.append($newCircle);
+
+			that.$dragCircle = $newCircle;
+		}
+	}
+
+	function onSvgMouseUp(evt, that){
+		that.$dragCircle = null;
+	}
+
+	function onSvgMouseMove(evt, that){
+		if (null != that.$dragCircle){
+			that.$dragCircle.attr('cx', evt.offsetX);
+			that.$dragCircle.attr('cy', evt.offsetY);
+		}
+	}
+
+	function onCircleMouseDown(evt, that, circle){
+		if (evt.which == 1)			// left click
+			that.$dragCircle = $(circle);
+		else if (evt.which == 3)	// right-click to delete
+			$(circle).remove();
+		
+		evt.stopPropagation();
 	}
 
 	PolygonMarker.prototype = {
