@@ -58,6 +58,32 @@
 		};
 	}
 
+	var setSvgPathData = function(dString){
+
+		getAllMarkers().remove();
+
+		this.$path.attr('d', dString);
+		var pathCommands = parsePath(this.$path.get(0));
+
+		for (var index in pathCommands){
+
+			var command = pathCommands[index];
+
+			var commandWord = command[0].toLowerCase();
+			if (commandWord == "l" || commandWord == "m"){
+				var point = {x: command[1], y: command[2]};
+				createMarker(this, point);
+			}
+			else if (commandWord == "z"){
+				this.isPathClosed = true;
+				break;
+			}
+				
+		}
+
+		updatePath(this);
+	}
+
 	function initialise(that){
 
 		that.$path = $(document.createElementNS('http://www.w3.org/2000/svg' ,'path'));
@@ -82,7 +108,9 @@
 	function onSvgMouseDown(evt, that){
 		if (evt.which == 1){	// left click
 			var eventxy = Utils.getEventxy(evt);
-			createMarker(that, eventxy);
+			var $newMarker = createMarker(that, eventxy);
+			that.$dragMarker = $newMarker;
+			updatePath(that);
 		}
 	}
 
@@ -104,8 +132,7 @@
 		else
 			$newMarker.insertAfter($(markerBefore));
 
-		that.$dragMarker = $newMarker;
-		updatePath(that);
+		return $newMarker;
 
 	}
 
@@ -181,7 +208,9 @@
 		});
 
 		if (null != markerBefore){
-			createMarker(that, clickPoint, markerBefore);
+			var $newMarker = createMarker(that, clickPoint, markerBefore);
+			that.$dragMarker = $newMarker;
+			updatePath(that);
 			evt.stopPropagation();
 		}
 
@@ -196,7 +225,8 @@
 	PolygonMarker.prototype = {
 		setReferenceImage: setReferenceImage,
 		closePath: closePath,
-		getSvgPathData: getSvgPathData
+		getSvgPathData: getSvgPathData,
+		setSvgPathData: setSvgPathData
 	}
 
 	root.PolygonMarker = PolygonMarker;
