@@ -26,6 +26,10 @@
 	}
 
 	var closePath = function(){
+
+		if ($(".marker", this.$markersSvg).length < 3)
+			return;
+
 		var dString = this.$path.attr('d');
 		dString = dString.trim();
 		if (!Utils.stringEndsWith(dString, "z"))
@@ -33,6 +37,25 @@
 
 		this.$path.attr('d', dString);
 		this.isPathClosed = true;
+	}
+
+	var getSvgPathData = function(){
+
+		if (!this.isPathClosed)
+			this.closePath();
+
+		var dString = "";
+		var error = null;
+
+		if (!this.isPathClosed)
+			error = "At least three markers are needed to form a closed path";
+		else
+			dString = this.$path.attr('d');
+
+		return {
+			error: error,
+			data: dString
+		};
 	}
 
 	function initialise(that){
@@ -123,7 +146,8 @@
 
 	PolygonMarker.prototype = {
 		setReferenceImage: setReferenceImage,
-		closePath: closePath
+		closePath: closePath,
+		getSvgPathData: getSvgPathData
 	}
 
 	root.PolygonMarker = PolygonMarker;
