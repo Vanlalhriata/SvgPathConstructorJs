@@ -10,7 +10,7 @@
 		this.$markersSvg = $markersSvg;
 		this.$path = null;
 		this.isPathClosed = false;
-		this.$dragCircle = null;
+		this.$dragMarker = null;
 
 		initialise(this);
 	}
@@ -38,10 +38,7 @@
 	function initialise(that){
 
 		that.$path = $(document.createElementNS('http://www.w3.org/2000/svg' ,'path'));
-		that.$path.attr('stroke', 'red');
-		that.$path.attr('stroke-width', '2');
-		that.$path.attr('fill', 'transparent');
-		that.$path.attr('fill-opacity', '0.3');
+		that.$path.attr('class', 'selection-path');
 
 		that.$markersSvg.append(that.$path);
 
@@ -58,49 +55,45 @@
 
 			var eventxy = Utils.getEventxy(evt);
 
-			var $newCircle = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
-			$newCircle.attr('r', '5');
-			$newCircle.attr('cx', eventxy.x);
-			$newCircle.attr('cy', eventxy.y);
-			$newCircle.attr('fill', '#22c');
-			$newCircle.attr('stroke', 'black');
+			var $newMarker = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
+			$newMarker.attr('cx', eventxy.x);
+			$newMarker.attr('cy', eventxy.y);
+			$newMarker.attr('class', 'marker');
 
-			$newCircle.attr('class', 'temp');
+			$newMarker.on('mousedown', function(evt){ onMarkerMouseDown(evt, that, this); })
 
-			$newCircle.on('mousedown', function(evt){ onCircleMouseDown(evt, that, this); })
-
-			that.$markersSvg.append($newCircle);
-			that.$dragCircle = $newCircle;
+			that.$markersSvg.append($newMarker);
+			that.$dragMarker = $newMarker;
 			updatePath(that);
 		}
 	}
 
 	function onSvgMouseUp(evt, that){
-		that.$dragCircle = null;
+		that.$dragMarker = null;
 	}
 
 	function onSvgMouseMove(evt, that){
-		if (null != that.$dragCircle){
+		if (null != that.$dragMarker){
 
 			var eventxy = Utils.getEventxy(evt);
 
-			that.$dragCircle.attr('cx', eventxy.x);
-			that.$dragCircle.attr('cy', eventxy.y);
+			that.$dragMarker.attr('cx', eventxy.x);
+			that.$dragMarker.attr('cy', eventxy.y);
 			updatePath(that);
 		}
 	}
 
-	function onCircleMouseDown(evt, that, circle){
+	function onMarkerMouseDown(evt, that, marker){
 		if (evt.which == 1)			// left click
-			that.$dragCircle = $(circle);
+			that.$dragMarker = $(marker);
 		else if (evt.which == 3){	// right-click to delete
 
 			// Open path if first or last marker
-			var circles = $("circle", that.$markersSvg); 
-			if (circles.last().get(0) == circle || circles.first().get(0) == circle)
+			var markers = $(".marker", that.$markersSvg); 
+			if (markers.last().get(0) == marker || markers.first().get(0) == marker)
 				that.isPathClosed = false;
 
-			$(circle).remove();
+			$(marker).remove();
 			updatePath(that);
 		}
 
@@ -112,14 +105,14 @@
 		var dString = "";
 		var operation = "";
 
-		var circles = $("circle", that.$markersSvg);
-		circles.each(function(index, circle){
+		var marker = $(".marker", that.$markersSvg);
+		marker.each(function(index, marker){
 			if (index == 0)
 				operation = "M";
 			else
 				operation = "L";
 
-			dString += operation + $(circle).attr('cx') + "," + $(circle).attr('cy') + " ";
+			dString += operation + $(marker).attr('cx') + "," + $(marker).attr('cy') + " ";
 		});
 
 		if (that.isPathClosed)

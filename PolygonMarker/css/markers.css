@@ -1,0 +1,11 @@
+.marker {
+	r: 5px;
+	fill: #0bf;
+	stroke: black;
+}
+
+.selection-path {
+	stroke: #f92;
+	stroke-width: 3px;
+	fill: transparent;
+}
