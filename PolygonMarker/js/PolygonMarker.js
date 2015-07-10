@@ -9,6 +9,7 @@
 
 		this.$markersSvg = $markersSvg;
 		this.$path = null;
+		this.isPathClosed = false;
 		this.$dragCircle = null;
 
 		initialise(this);
@@ -22,6 +23,16 @@
 		this.$markersSvg.width($referenceImage.width());
 		this.$markersSvg.height($referenceImage.height());
 
+	}
+
+	var closePath = function(){
+		var dString = this.$path.attr('d');
+		dString = dString.trim();
+		if (!Utils.stringEndsWith(dString, "z"))
+			dString += " z";
+
+		this.$path.attr('d', dString);
+		this.isPathClosed = true;
 	}
 
 	function initialise(that){
@@ -45,7 +56,7 @@
 	function onSvgMouseDown(evt, that){
 		if (evt.which == 1){	// left click
 
-			var eventxy = getEventxy(evt);
+			var eventxy = Utils.getEventxy(evt);
 
 			var $newCircle = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
 			$newCircle.attr('r', '5');
@@ -69,7 +80,7 @@
 	function onSvgMouseMove(evt, that){
 		if (null != that.$dragCircle){
 
-			var eventxy = getEventxy(evt);
+			var eventxy = Utils.getEventxy(evt);
 
 			that.$dragCircle.attr('cx', eventxy.x);
 			that.$dragCircle.attr('cy', eventxy.y);
@@ -81,6 +92,10 @@
 		if (evt.which == 1)			// left click
 			that.$dragCircle = $(circle);
 		else if (evt.which == 3){	// right-click to delete
+
+			if (($(circle)).is(":last-child"))
+				that.isPathClosed = false;
+
 			$(circle).remove();
 			updatePath(that);
 		}
@@ -103,18 +118,15 @@
 			dString += operation + $(circle).attr('cx') + "," + $(circle).attr('cy') + " ";
 		});
 
+		if (that.isPathClosed)
+			dString += " z";
+
 		that.$path.attr('d', dString);
 	}
 
-	function getEventxy(evt){
-		if (typeof evt.offsetX != 'undefined')
-			return { x: evt.offsetX, y: evt.offsetY };
-		else
-			return { x: evt.originalEvent.layerX, y: evt.originalEvent.layerY };
-	}
-
 	PolygonMarker.prototype = {
-		setReferenceImage: setReferenceImage
+		setReferenceImage: setReferenceImage,
+		closePath: closePath
 	}
 
 	root.PolygonMarker = PolygonMarker;
