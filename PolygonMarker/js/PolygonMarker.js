@@ -27,7 +27,7 @@
 
 	var closePath = function(){
 
-		if ($(".marker", this.$markersSvg).length < 3)
+		if (getAllMarkers().length < 3)
 			return;
 
 		var dString = this.$path.attr('d');
@@ -131,7 +131,7 @@
 
 			// Open path if first or last marker
 			var markers = getAllMarkers();
-			if (markers.last().get(0) == marker || markers.first().get(0) == marker)
+			if (markers.length <= 3 || markers.last().get(0) == marker || markers.first().get(0) == marker)
 				that.isPathClosed = false;
 
 			$(marker).remove();
