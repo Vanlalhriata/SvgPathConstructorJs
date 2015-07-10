@@ -6,11 +6,7 @@
 	}
 
 	Utils.getEventxy = function(evt){
-		// Fix for Firefox
-		if (typeof evt.offsetX != 'undefined')
-			return { x: evt.offsetX, y: evt.offsetY };
-		else
-			return { x: evt.originalEvent.layerX, y: evt.originalEvent.layerY };
+		return { x: evt.originalEvent.layerX, y: evt.originalEvent.layerY };
 	}
 
 	Utils.getSvgCircleCenter = function(circle){

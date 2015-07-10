@@ -164,8 +164,6 @@
 
 	function onPathMouseDown(evt, that){
 
-		evt.stopPropagation();
-
 		var clickPoint = Utils.getEventxy(evt);
 		var markers = getAllMarkers();
 		var markerBefore = null;
@@ -182,8 +180,10 @@
 
 		});
 
-		if (null != markerBefore)
+		if (null != markerBefore){
 			createMarker(that, clickPoint, markerBefore);
+			evt.stopPropagation();
+		}
 
 	}
 
