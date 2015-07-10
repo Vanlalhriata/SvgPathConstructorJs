@@ -65,6 +65,8 @@
 			$newCircle.attr('fill', '#22c');
 			$newCircle.attr('stroke', 'black');
 
+			$newCircle.attr('class', 'temp');
+
 			$newCircle.on('mousedown', function(evt){ onCircleMouseDown(evt, that, this); })
 
 			that.$markersSvg.append($newCircle);
@@ -93,7 +95,9 @@
 			that.$dragCircle = $(circle);
 		else if (evt.which == 3){	// right-click to delete
 
-			if (($(circle)).is(":last-child"))
+			// Open path if first or last marker
+			var circles = $("circle", that.$markersSvg); 
+			if (circles.last().get(0) == circle || circles.first().get(0) == circle)
 				that.isPathClosed = false;
 
 			$(circle).remove();
