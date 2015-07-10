@@ -62,6 +62,11 @@
 
 		that.$path = $(document.createElementNS('http://www.w3.org/2000/svg' ,'path'));
 		that.$path.attr('class', 'selection-path');
+
+		that.$path.attr('stroke', '#f20');
+		that.$path.attr('stroke-width', '3');
+		that.$path.attr('fill', 'transparent');
+
 		that.$markersSvg.append(that.$path);
 
 		that.$path.on('mousedown', function(evt) { onPathMouseDown(evt, that); });
@@ -87,6 +92,10 @@
 		$newMarker.attr('cx', point.x);
 		$newMarker.attr('cy', point.y);
 		$newMarker.attr('class', 'marker');
+
+		$newMarker.attr('r', '5');
+		$newMarker.attr('fill', '#0bf');
+		$newMarker.attr('stroke', '#222');
 
 		$newMarker.on('mousedown', function(evt){ onMarkerMouseDown(evt, that, this); })
 
@@ -121,7 +130,7 @@
 		else if (evt.which == 3){	// right-click to delete
 
 			// Open path if first or last marker
-			var markers = $(".marker", that.$markersSvg);
+			var markers = getAllMarkers();
 			if (markers.last().get(0) == marker || markers.first().get(0) == marker)
 				that.isPathClosed = false;
 
@@ -137,7 +146,7 @@
 		var dString = "";
 		var operation = "";
 
-		var markers = $(".marker", that.$markersSvg);
+		var markers = getAllMarkers();
 		markers.each(function(index, marker){
 			if (index == 0)
 				operation = "M";
@@ -158,7 +167,7 @@
 		evt.stopPropagation();
 
 		var clickPoint = Utils.getEventxy(evt);
-		var markers = $(".marker", that.$markersSvg);
+		var markers = getAllMarkers();
 		var markerBefore = null;
 
 		markers.each(function(index, marker){
@@ -176,6 +185,12 @@
 		if (null != markerBefore)
 			createMarker(that, clickPoint, markerBefore);
 
+	}
+
+	function getAllMarkers(){
+		// HACK: looking everywhere for markers instead of only $markersSvg
+		// because Internet Explorer
+		return $('.marker');
 	}
 
 	PolygonMarker.prototype = {
