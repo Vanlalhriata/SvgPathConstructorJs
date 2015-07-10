@@ -62,12 +62,13 @@
 
 		that.$path = $(document.createElementNS('http://www.w3.org/2000/svg' ,'path'));
 		that.$path.attr('class', 'selection-path');
-
 		that.$markersSvg.append(that.$path);
 
-		that.$markersSvg.on('mousedown', function(evt){ onSvgMouseDown(evt, that) });
-		that.$markersSvg.on('mouseup', function(evt){ onSvgMouseUp(evt, that) });
-		that.$markersSvg.on('mousemove', function(evt){ onSvgMouseMove(evt, that) });
+		that.$path.on('mousedown', function(evt) { onPathMouseDown(evt, that); });
+
+		that.$markersSvg.on('mousedown', function(evt){ onSvgMouseDown(evt, that); });
+		that.$markersSvg.on('mouseup', function(evt){ onSvgMouseUp(evt, that); });
+		that.$markersSvg.on('mousemove', function(evt){ onSvgMouseMove(evt, that); });
 
 		// disable right-click
 		that.$markersSvg.on('contextmenu', function(){ return false; });
@@ -75,20 +76,28 @@
 
 	function onSvgMouseDown(evt, that){
 		if (evt.which == 1){	// left click
-
 			var eventxy = Utils.getEventxy(evt);
-
-			var $newMarker = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
-			$newMarker.attr('cx', eventxy.x);
-			$newMarker.attr('cy', eventxy.y);
-			$newMarker.attr('class', 'marker');
-
-			$newMarker.on('mousedown', function(evt){ onMarkerMouseDown(evt, that, this); })
-
-			that.$markersSvg.append($newMarker);
-			that.$dragMarker = $newMarker;
-			updatePath(that);
+			createMarker(that, eventxy);
 		}
+	}
+
+	function createMarker(that, point, markerBefore){
+
+		var $newMarker = $(document.createElementNS('http://www.w3.org/2000/svg' ,'circle'));
+		$newMarker.attr('cx', point.x);
+		$newMarker.attr('cy', point.y);
+		$newMarker.attr('class', 'marker');
+
+		$newMarker.on('mousedown', function(evt){ onMarkerMouseDown(evt, that, this); })
+
+		if (typeof markerBefore == 'undefined')
+			that.$markersSvg.append($newMarker);
+		else
+			$newMarker.insertAfter($(markerBefore));
+
+		that.$dragMarker = $newMarker;
+		updatePath(that);
+
 	}
 
 	function onSvgMouseUp(evt, that){
@@ -112,7 +121,7 @@
 		else if (evt.which == 3){	// right-click to delete
 
 			// Open path if first or last marker
-			var markers = $(".marker", that.$markersSvg); 
+			var markers = $(".marker", that.$markersSvg);
 			if (markers.last().get(0) == marker || markers.first().get(0) == marker)
 				that.isPathClosed = false;
 
@@ -128,8 +137,8 @@
 		var dString = "";
 		var operation = "";
 
-		var marker = $(".marker", that.$markersSvg);
-		marker.each(function(index, marker){
+		var markers = $(".marker", that.$markersSvg);
+		markers.each(function(index, marker){
 			if (index == 0)
 				operation = "M";
 			else
@@ -142,6 +151,31 @@
 			dString += " z";
 
 		that.$path.attr('d', dString);
+	}
+
+	function onPathMouseDown(evt, that){
+
+		evt.stopPropagation();
+
+		var clickPoint = Utils.getEventxy(evt);
+		var markers = $(".marker", that.$markersSvg);
+		var markerBefore = null;
+
+		markers.each(function(index, marker){
+
+			var firstPoint = Utils.getSvgCircleCenter(markers[index]);
+			var secondPoint = Utils.getSvgCircleCenter(markers[(index + 1) % markers.length]);
+
+			if (Utils.isPointLiesBetween(clickPoint, firstPoint, secondPoint)){
+				markerBefore = marker;
+				return false;	// break
+			}
+
+		});
+
+		if (null != markerBefore)
+			createMarker(that, clickPoint, markerBefore);
+
 	}
 
 	PolygonMarker.prototype = {
